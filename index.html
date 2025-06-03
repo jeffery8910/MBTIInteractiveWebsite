@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 認知功能互動網頁體驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease; /* 平滑過渡效果 */
+        }
+
+        /* 預設/現代主題 (theme-modern) */
+        body.theme-modern {
+            background-color: #f0f4f8;
+            color: #1f2937;
+        }
+        body.theme-modern .function-card {
+            background-color: white;
+            color: #1f2937;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        body.theme-modern .function-title { color: #1e3a8a; }
+        body.theme-modern .function-description { color: #4b5563; }
+        body.theme-modern .interactive-area { background-color: #f9fafb; border-color: #e5e7eb;}
+        body.theme-modern .interactive-button { background-color: #3b82f6; color: white; }
+        body.theme-modern .interactive-button:hover { background-color: #2563eb; }
+        body.theme-modern .theme-button { border-color: #d1d5db; color: #374151; }
+        body.theme-modern .theme-button.active { background-color: #1e3a8a; color: white; }
+        body.theme-modern .output-text { color: #1f2937; }
+        body.theme-modern #seCanvas { background-color: #e0e7ff; }
+        body.theme-modern #niWisdomStone { background-color: #d1d5db; color: #374151; }
+        body.theme-modern #niWisdomStone:hover { background-color: #9ca3af; }
+        body.theme-modern #tiIndicatorLight { background-color: #9ca3af; } /* 預設灰色 */
+        body.theme-modern .ti-switch-correct #tiIndicatorLight { background-color: #4ade80; } /* 正確時綠色 */
+        body.theme-modern .ti-switch-incorrect #tiIndicatorLight { background-color: #f87171; } /* 錯誤時紅色 */
+        body.theme-modern .fi-option { border-color: #ccc; color: #374151; }
+        body.theme-modern .fi-option:hover, body.theme-modern .fi-option.selected { background-color: #dbeafe; border-color: #3b82f6; }
+        body.theme-modern .poll-option { border-color: #ccc; color: #374151;}
+        body.theme-modern .poll-bar { background-color: #93c5fd; }
+        body.theme-modern header h1 { color: #1f2937; }
+        body.theme-modern header p { color: #4b5563; }
+        body.theme-modern footer p { color: #4b5563; border-color: #d1d5db; }
+
+
+        /* 經典主題 (theme-classic) */
+        body.theme-classic {
+            background-color: #fdf6e3; /* 米黃色背景 */
+            color: #583e2e; /* 深棕色文字 */
+        }
+        body.theme-classic .function-card {
+            background-color: #fffaf0; /* 象牙白卡片 */
+            color: #583e2e;
+            border: 1px solid #d2b48c; /* 棕褐色邊框 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        body.theme-classic .function-title { color: #8b4513; } /* 鞍褐色標題 */
+        body.theme-classic .function-description { color: #704214; }
+        body.theme-classic .interactive-area { background-color: #faf0e6; border-color: #d2b48c;}
+        body.theme-classic .interactive-button { background-color: #a0522d; color: white; } /* 赭色按鈕 */
+        body.theme-classic .interactive-button:hover { background-color: #803816; }
+        body.theme-classic .theme-button { border-color: #d2b48c; color: #583e2e; }
+        body.theme-classic .theme-button.active { background-color: #8b4513; color: white; }
+        body.theme-classic .output-text { color: #583e2e; }
+        body.theme-classic #seCanvas { background-color: #ffe4c4; } /* 桃色畫布 */
+        body.theme-classic #niWisdomStone { background-color: #e0dcd1; color: #583e2e; }
+        body.theme-classic #niWisdomStone:hover { background-color: #c9c1b3; }
+        body.theme-classic #tiIndicatorLight { background-color: #c0c0c0; }
+        body.theme-classic .ti-switch-correct #tiIndicatorLight { background-color: #90ee90; }
+        body.theme-classic .ti-switch-incorrect #tiIndicatorLight { background-color: #ffcccb; }
+        body.theme-classic .fi-option { border-color: #d2b48c; color: #583e2e; }
+        body.theme-classic .fi-option:hover, body.theme-classic .fi-option.selected { background-color: #f5e5d5; border-color: #a0522d; }
+        body.theme-classic .poll-option { border-color: #d2b48c; color: #583e2e;}
+        body.theme-classic .poll-bar { background-color: #deb887; } /* 硬玉米色進度條 */
+        body.theme-classic header h1 { color: #583e2e; }
+        body.theme-classic header p { color: #704214; }
+        body.theme-classic footer p { color: #704214; border-color: #d2b48c; }
+
+        /* 深邃夜間主題 (theme-dark) */
+        body.theme-dark {
+            background-color: #111827; /* 深灰藍背景 */
+            color: #d1d5db; /* 淺灰色文字 */
+        }
+        body.theme-dark .function-card {
+            background-color: #1f2937; /* 較淺的深灰藍卡片 */
+            color: #d1d5db;
+            border: 1px solid #374151;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        body.theme-dark .function-title { color: #60a5fa; } /* 淡藍色標題 */
+        body.theme-dark .function-description { color: #9ca3af; }
+        body.theme-dark .interactive-area { background-color: #374151; border-color: #4b5563;}
+        body.theme-dark .interactive-button { background-color: #4f46e5; color: white; } /* 靛藍色按鈕 */
+        body.theme-dark .interactive-button:hover { background-color: #4338ca; }
+        body.theme-dark .theme-button { border-color: #4b5563; color: #9ca3af; }
+        body.theme-dark .theme-button.active { background-color: #60a5fa; color: #111827; }
+        body.theme-dark .output-text { color: #e5e7eb; }
+        body.theme-dark #seCanvas { background-color: #312e81; } /* 深靛藍畫布 */
+        body.theme-dark #niWisdomStone { background-color: #4b5563; color: #9ca3af; }
+        body.theme-dark #niWisdomStone:hover { background-color: #52525b; }
+        body.theme-dark #tiIndicatorLight { background-color: #6b7280; }
+        body.theme-dark .ti-switch-correct #tiIndicatorLight { background-color: #34d399; }
+        body.theme-dark .ti-switch-incorrect #tiIndicatorLight { background-color: #ef4444; }
+        body.theme-dark .fi-option { border-color: #4b5563; color: #d1d5db; }
+        body.theme-dark .fi-option:hover, body.theme-dark .fi-option.selected { background-color: #374151; border-color: #60a5fa; }
+        body.theme-dark .poll-option { border-color: #4b5563; color: #d1d5db;}
+        body.theme-dark .poll-bar { background-color: #3b82f6; }
+        body.theme-dark header h1 { color: #e5e7eb; }
+        body.theme-dark header p { color: #9ca3af; }
+        body.theme-dark footer p { color: #9ca3af; border-color: #374151; }
+
+
+        /* 通用卡片樣式 */
+        .function-card {
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .function-card:hover {
+            transform: translateY(-5px);
+        }
+        .interactive-area {
+            border: 1px solid; /* 顏色由主題定義 */
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-button {
+            margin: 5px;
+            padding: 8px 12px;
+            border: 1px solid; /* 顏色由主題定義 */
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        #seCanvas {
+            width: 100%;
+            height: 150px;
+            border-radius: 8px;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .task-item input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #3b82f6; /* Checkbox 顏色，可考慮也隨主題變化 */
+        }
+        body.theme-dark .task-item input[type="checkbox"] { accent-color: #60a5fa; }
+        body.theme-classic .task-item input[type="checkbox"] { accent-color: #a0522d; }
+
+        .task-item label {
+            flex-grow: 1;
+        }
+        .fi-option {
+            padding: 10px;
+            border: 1px solid; /* 顏色由主題定義 */
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .poll-option {
+            width: 100%;
+            padding: 8px;
+            margin: 4px 0;
+            border: 1px solid; /* 顏色由主題定義 */
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .poll-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 0;
+            transition: width 0.5s ease, background-color 0.5s ease;
+        }
+        .poll-text {
+            position: relative;
+            z-index: 1;
+        }
+         /* Ti 指示燈的父容器，用於根據狀態改變子元素樣式 */
+        #tiIndicatorContainer .ti-switch-correct #tiIndicatorLight { background-color: #4ade80; }
+        #tiIndicatorContainer .ti-switch-incorrect #tiIndicatorLight { background-color: #f87171; }
+        body.theme-classic #tiIndicatorContainer .ti-switch-correct #tiIndicatorLight { background-color: #90ee90; }
+        body.theme-classic #tiIndicatorContainer .ti-switch-incorrect #tiIndicatorLight { background-color: #ffcccb; }
+        body.theme-dark #tiIndicatorContainer .ti-switch-correct #tiIndicatorLight { background-color: #34d399; }
+        body.theme-dark #tiIndicatorContainer .ti-switch-incorrect #tiIndicatorLight { background-color: #ef4444; }
+    </style>
+</head>
+<body class="theme-modern p-4 md:p-8"> <header class="text-center mb-12">
+        <h1 class="text-4xl font-bold mb-4">MBTI 認知功能互動網頁體驗</h1>
+        <p class="text-lg max-w-2xl mx-auto">
+            本網頁旨在透過一些簡單的互動元素，趣味性地探索不同MBTI認知功能可能的偏好。這並非科學診斷工具，僅供參考與啟發。
+        </p>
+    </header>
+
+    <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div class="function-card">
+            <h2 class="function-title">Se (外向實感) - 即時感官</h2>
+            <p class="function-description">偏好具體、即時的感官體驗，享受與環境的直接互動，反應迅速。</p>
+            <div class="interactive-area">
+                <p class="mb-2 text-sm">滑鼠在下方區域移動，感受即時的視覺回饋：</p>
+                <canvas id="seCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Si (內向實感) - 經驗細節</h2>
+            <p class="function-description">重視過去經驗與細節，偏好穩定、熟悉且有條理的資訊呈現。</p>
+            <div class="interactive-area">
+                <p class="mb-2 text-sm">選擇您偏好的網站主題風格：</p>
+                <div id="siThemeSelector">
+                    <button class="theme-button active" data-theme="modern">現代簡約</button>
+                    <button class="theme-button" data-theme="classic">經典懷舊</button>
+                    <button class="theme-button" data-theme="dark">深邃夜間</button>
+                </div>
+                <p id="siOutput" class="output-text">目前選擇：現代簡約</p>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Ne (外向直覺) - 探索可能</h2>
+            <p class="function-description">對各種可能性、新點子與連結充滿好奇，喜歡探索與腦力激盪。</p>
+            <div class="interactive-area">
+                <button id="neIdeaButton" class="interactive-button">點我！激發一個新點子！</button>
+                <p id="neOutput" class="output-text"></p>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Ni (內向直覺) - 深層洞察</h2>
+            <p class="function-description">專注於內在洞察、長遠模式與潛在意義，喜歡深入思考。</p>
+            <div class="interactive-area">
+                <p class="mb-2 text-sm">點擊下方的符文石，逐步揭示智慧箴言：</p>
+                <div id="niWisdomStone" class="w-20 h-20 rounded-full flex items-center justify-center text-3xl cursor-pointer select-none transition-colors">💎</div>
+                <p id="niOutput" class="output-text"></p>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Te (外向思考) - 效率邏輯</h2>
+            <p class="function-description">重視效率、邏輯、目標達成與外部系統的組織。</p>
+            <div class="interactive-area">
+                <p class="mb-2 text-sm">簡易任務管理器：</p>
+                <div id="teTaskList" class="w-full text-left px-4">
+                    <div class="task-item"><input type="checkbox" id="task1"><label for="task1">完成今日報告</label></div>
+                    <div class="task-item"><input type="checkbox" id="task2"><label for="task2">回覆重要郵件</label></div>
+                    <div class="task-item"><input type="checkbox" id="task3"><label for="task3">規劃明日行程</label></div>
+                </div>
+                <button id="teOrganizeButton" class="interactive-button mt-4">整理任務 (示意)</button>
+                <p id="teOutput" class="output-text"></p>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Ti (內向思考) - 精確分析</h2>
+            <p class="function-description">追求精確、邏輯一致性與對事物原理的深度理解。</p>
+            <div class="interactive-area" id="tiIndicatorContainer"> <p class="mb-2 text-sm">邏輯開關：請找出正確的組合以點亮指示燈</p>
+                <div class="flex space-x-4 my-2">
+                    <label class="flex items-center"><input type="checkbox" class="ti-switch mr-1" data-id="1"> 開關A</label>
+                    <label class="flex items-center"><input type="checkbox" class="ti-switch mr-1" data-id="2"> 開關B</label>
+                    <label class="flex items-center"><input type="checkbox" class="ti-switch mr-1" data-id="3"> 開關C</label>
+                </div>
+                <div id="tiIndicatorLight" class="w-10 h-10 rounded-full transition-colors"></div>
+                <p id="tiOutput" class="output-text"></p>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Fe (外向情感) - 和諧連結</h2>
+            <p class="function-description">重視人際和諧、他人感受與社群連結，傾向創造積極氛圍。</p>
+            <div class="interactive-area">
+                <p class="mb-2 text-sm">社群小調查：您今天的心情如何？ (示意)</p>
+                <div id="fePoll" class="w-full max-w-xs">
+                    <div class="poll-option" data-value="happy"><div class="poll-bar"></div><span class="poll-text">😄 非常開心 (30%)</span></div>
+                    <div class="poll-option" data-value="neutral"><div class="poll-bar"></div><span class="poll-text">🙂 平靜普通 (50%)</span></div>
+                    <div class="poll-option" data-value="sad"><div class="poll-bar"></div><span class="poll-text">😟 有點低落 (20%)</span></div>
+                </div>
+                <p id="feOutput" class="output-text"></p>
+            </div>
+        </div>
+
+        <div class="function-card">
+            <h2 class="function-title">Fi (內向情感) - 真實價值</h2>
+            <p class="function-description">追尋內在價值觀的真實性、個人情感的深度與意義。</p>
+            <div class="interactive-area">
+                <p class="mb-2 text-sm">選擇一個最能引起您共鳴的意象：</p>
+                <div class="flex flex-wrap justify-center">
+                    <div class="fi-option" data-value="forest">🌲 寧靜森林</div>
+                    <div class="fi-option" data-value="ocean">🌊 浩瀚海洋</div>
+                    <div class="fi-option" data-value="stars">✨ 璀璨星空</div>
+                </div>
+                <p id="fiOutput" class="output-text"></p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center mt-12 py-8 border-t">
+        <p>&copy; 2024 MBTI 認知功能互動體驗。僅供娛樂與參考。</p>
+    </footer>
+
+    <script>
+        // Se: 外向實感 - Canvas 粒子互動
+        const seCanvas = document.getElementById('seCanvas');
+        const seCtx = seCanvas.getContext('2d');
+        let seParticles = [];
+        
+        function resizeSeCanvas() {
+            seCanvas.width = seCanvas.offsetWidth;
+            seCanvas.height = 150; // 固定高度
+        }
+        resizeSeCanvas(); // 初始調整大小
+
+        function SeParticle(x, y) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 5 + 2;
+            this.speedX = Math.random() * 2 - 1;
+            this.speedY = Math.random() * 2 - 1;
+            this.color = `hsl(${Math.random() * 360}, 70%, 70%)`;
+        }
+
+        SeParticle.prototype.update = function() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.size > 0.2) this.size -= 0.05;
+        };
+
+        SeParticle.prototype.draw = function() {
+            seCtx.fillStyle = this.color;
+            seCtx.beginPath();
+            seCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            seCtx.fill();
+        };
+
+        function handleSeParticles() {
+            for (let i = 0; i < seParticles.length; i++) {
+                seParticles[i].update();
+                seParticles[i].draw();
+                if (seParticles[i].size <= 0.2) {
+                    seParticles.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function animateSe() {
+            seCtx.clearRect(0, 0, seCanvas.width, seCanvas.height);
+            handleSeParticles();
+            requestAnimationFrame(animateSe);
+        }
+        
+        seCanvas.addEventListener('mousemove', function(event) {
+            const rect = seCanvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            for (let i = 0; i < 3; i++) {
+                 if (seParticles.length < 100) {
+                    seParticles.push(new SeParticle(x, y));
+                }
+            }
+        });
+        
+        window.addEventListener('load', () => {
+            resizeSeCanvas();
+            animateSe();
+        });
+        window.addEventListener('resize', resizeSeCanvas);
+
+
+        // Si: 內向實感 - 主題選擇
+        const siThemeSelector = document.getElementById('siThemeSelector');
+        const siOutput = document.getElementById('siOutput');
+        const siButtons = siThemeSelector.querySelectorAll('.theme-button');
+
+        siButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                siButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                const selectedThemeName = this.dataset.theme;
+                siOutput.textContent = `目前選擇：${this.textContent}`;
+                
+                // 移除所有可能的主題 class
+                document.body.classList.remove('theme-modern', 'theme-classic', 'theme-dark');
+                // 添加新的主題 class
+                document.body.classList.add(`theme-${selectedThemeName}`);
+            });
+        });
+
+        // Ne: 外向直覺 - 點子產生器 (同前)
+        const neIdeaButton = document.getElementById('neIdeaButton');
+        const neOutput = document.getElementById('neOutput');
+        const neIdeas = [
+            "如果動物會說話，第一句會是什麼？", "想像一個漂浮在空中的城市。", "用襪子能做出什麼意想不到的發明？",
+            "如果顏色有味道會是怎樣？", "設計一個專為夢境設計的社交媒體。", "一首關於迷路吐司的歌。", "如果植物可以選擇主人？"
+        ];
+        neIdeaButton.addEventListener('click', function() {
+            neOutput.textContent = neIdeas[Math.floor(Math.random() * neIdeas.length)];
+        });
+
+        // Ni: 內向直覺 - 智慧箴言 (同前)
+        const niWisdomStone = document.getElementById('niWisdomStone');
+        const niOutput = document.getElementById('niOutput');
+        const niWisdoms = ["...", "深思...", "洞見...", "萬物皆有關聯。", "靜默中藏真知。", "內觀自見光明。"];
+        let niClickCount = 0;
+        niWisdomStone.addEventListener('click', function() {
+            niOutput.textContent = niWisdoms[niClickCount % niWisdoms.length];
+            niClickCount++;
+            niWisdomStone.style.transform = 'scale(1.1)';
+            setTimeout(() => { niWisdomStone.style.transform = 'scale(1)'; }, 150);
+        });
+
+        // Te: 外向思考 - 任務整理 (同前)
+        const teOrganizeButton = document.getElementById('teOrganizeButton');
+        const teOutput = document.getElementById('teOutput');
+        const teTaskList = document.getElementById('teTaskList');
+        teOrganizeButton.addEventListener('click', function() {
+            const tasks = Array.from(teTaskList.querySelectorAll('.task-item'));
+            const completedTasks = tasks.filter(task => task.querySelector('input[type="checkbox"]').checked);
+            const pendingTasks = tasks.filter(task => !task.querySelector('input[type="checkbox"]').checked);
+            teTaskList.innerHTML = '';
+            pendingTasks.forEach(task => teTaskList.appendChild(task));
+            completedTasks.forEach(task => teTaskList.appendChild(task));
+            teOutput.textContent = "任務已重新排序 (已完成項目移至底部)。";
+        });
+
+        // Ti: 內向思考 - 邏輯開關
+        const tiSwitches = document.querySelectorAll('.ti-switch');
+        const tiIndicatorContainer = document.getElementById('tiIndicatorContainer'); // 使用父容器
+        const tiOutput = document.getElementById('tiOutput');
+        const tiCorrectCombination = {1: true, 2: false, 3: true}; 
+
+        tiSwitches.forEach(s => {
+            s.addEventListener('change', function() {
+                let currentCombination = {};
+                tiSwitches.forEach(sw => { currentCombination[sw.dataset.id] = sw.checked; });
+                let isCorrect = Object.keys(tiCorrectCombination).every(id => tiCorrectCombination[id] === currentCombination[id]);
+
+                // 移除舊的狀態 class
+                tiIndicatorContainer.classList.remove('ti-switch-correct', 'ti-switch-incorrect');
+
+                if (isCorrect) {
+                    tiIndicatorContainer.classList.add('ti-switch-correct');
+                    tiOutput.textContent = "邏輯正確！指示燈已點亮。";
+                } else {
+                    tiIndicatorContainer.classList.add('ti-switch-incorrect');
+                    tiOutput.textContent = "組合不正確，請繼續嘗試。";
+                }
+            });
+        });
+         // 初始化Ti指示燈的父容器class，讓預設顏色能正確顯示
+        document.addEventListener('DOMContentLoaded', () => {
+            if (tiIndicatorContainer && !tiIndicatorContainer.classList.contains('ti-switch-correct') && !tiIndicatorContainer.classList.contains('ti-switch-incorrect')) {
+                 // 預設為灰色，但由CSS主題直接控制，此處可不加特定class，或加一個 'ti-switch-default' class
+            }
+        });
+
+
+        // Fe: 外向情感 - 社群調查 (同前，略作調整以確保百分比更新正確)
+        const fePollOptions = document.querySelectorAll('#fePoll .poll-option');
+        const feOutput = document.getElementById('feOutput');
+        let fePollData = { happy: 30, neutral: 50, sad: 20 };
+
+        function updateFePollDisplay() {
+            let currentTotal = Object.values(fePollData).reduce((a, b) => a + b, 0);
+            fePollOptions.forEach(option => {
+                const value = option.dataset.value;
+                const percentage = fePollData[value];
+                const displayPercentage = currentTotal === 0 ? 0 : Math.round((percentage / currentTotal) * 100)
+                option.querySelector('.poll-bar').style.width = displayPercentage + '%';
+                option.querySelector('.poll-text').textContent = `${option.textContent.split('(')[0].trim()} (${displayPercentage}%)`;
+            });
+        }
+        updateFePollDisplay();
+
+        fePollOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const selectedValue = this.dataset.value;
+                Object.keys(fePollData).forEach(key => { // 簡單示意增加選中項，減少其他項
+                    if (key === selectedValue) fePollData[key] = Math.min(100, fePollData[key] + 10);
+                    else fePollData[key] = Math.max(0, fePollData[key] - 5);
+                });
+                // 確保總和不超過100，並重新分配
+                let totalVotes = Object.values(fePollData).reduce((a,b) => a+b, 0);
+                if (totalVotes > 0) { //避免除以零
+                    Object.keys(fePollData).forEach(key => {
+                        fePollData[key] = Math.round((fePollData[key] / totalVotes) * 100);
+                    });
+                }
+                 // 再次檢查總和，並將差額加到最大的項目 (避免浮點數問題導致總和不是100)
+                let finalTotal = Object.values(fePollData).reduce((a,b) => a+b, 0);
+                if (finalTotal !== 100 && finalTotal > 0) {
+                    let maxKey = Object.keys(fePollData).reduce((a, b) => fePollData[a] > fePollData[b] ? a : b);
+                    fePollData[maxKey] += (100 - finalTotal);
+                }
+
+
+                updateFePollDisplay();
+                feOutput.textContent = `感謝您的參與！您選擇了 "${this.textContent.split('(')[0].trim()}"。`;
+            });
+        });
+
+        // Fi: 內向情感 - 個人共鳴 (同前)
+        const fiOptions = document.querySelectorAll('.fi-option');
+        const fiOutput = document.getElementById('fiOutput');
+        const fiMessages = {
+            forest: "森林的靜謐與生生不息，或許映照著您內心的平和與堅韌。",
+            ocean: "海洋的深邃與包容，可能觸動了您對廣闊可能性與深刻情感的嚮往。",
+            stars: "星空的璀璨與神秘，也許呼應了您對理想、希望與超越現實的追求。"
+        };
+        fiOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                fiOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                fiOutput.textContent = fiMessages[this.dataset.value];
+            });
+        });
+
+    </script>
+</body>
+</html>
